@@ -1,13 +1,59 @@
 package com.example.bank.account;
 
+import com.example.bank.history.History;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class AccountResponse {
 
+    // 계좌 상세보기 화면
+    @Data
+    public static class DetailDTO {
+        private Integer userId;
+        private String fullname;
+        private Integer number;
+        private Long balance; // 현재 계좌 잔액
 
-    //메인 화면 DTO
+        private List<HistoryDTO> histories = new ArrayList<>();
+
+        public DetailDTO(Account account, List<History> historyList, int searchNumber) {
+            this.userId = account.getUser().getId();
+            this.fullname = account.getUser().getFullname();
+            this.number = account.getNumber();
+            this.balance = account.getBalance();
+            this.histories = historyList.stream().map(history ->
+                    new HistoryDTO(history, searchNumber)
+            ).toList();
+        }
+
+        @Data
+        class HistoryDTO {
+            private Integer senderNumber;
+            private Integer receiverNumber;
+            private Long amount;
+            private Long balance; // 그때 잔액
+            private String gubun; // 입금, 출금
+
+            public HistoryDTO(History history, int searchNumber) {
+                this.senderNumber = history.getSender().getNumber();
+                this.receiverNumber = history.getReceiver().getNumber();
+                this.amount = history.getAmount();
+
+                if(history.getSender().getNumber() == searchNumber){
+                    this.balance = history.getSenderBalance();
+                    this.gubun = "출금";
+                }else{
+                    this.balance = history.getReceiverBalance();
+                    this.gubun = "입금";
+                }
+
+            }
+        }
+    }
+
+    // 계좌 목록보기 화면
     @Data
     public static class MainDTO{
         private int userId;
@@ -21,7 +67,6 @@ public class AccountResponse {
             this.accounts = accountList.stream().map(AccountDTO::new).toList();
         }
 
-        //메인화면 List<AccountDTO>의 DTO
         @Data
         class AccountDTO {
             private Long accountId;
